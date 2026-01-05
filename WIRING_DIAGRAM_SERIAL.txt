@@ -1,0 +1,342 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║              MASTER-SLAVE ARDUINO WIRING DIAGRAM (SERIAL UART)               ║
+║                     Library Robot Book Selector System                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MASTER ARDUINO UNO                                 │
+│                    (Line Following & Motor Control)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────────────────────────────────┐
+    │       MASTER ARDUINO UNO             │
+    │                                       │
+    │  [A0]────────┐                        │
+    │  [A1]────────┼──────► IR Sensors     │
+    │              │                        │
+    │  [D5]────────┐                        │
+    │  [D6]────────┼─┐                      │
+    │  [D7]────────┼─┼─┐                    │
+    │  [D8]────────┼─┼─┼─► Motor Driver    │
+    │  [D9]────────┼─┼─┘                    │
+    │  [D10]───────┼─┘                      │
+    │              │                        │
+    │  [D2]────────┐                        │
+    │  [D4]────────┼─┐                      │
+    │  [D12]───────┼─┼─► RFID-RC522        │
+    │  [D13]───────┼─┘   (SPI)             │
+    │              │                        │
+    │  [D3 RX]─────┼────► From Slave TX    │
+    │  [D11 TX]────┼────► To Slave RX      │
+    │  [GND]───────┴────► Common Ground    │
+    │                                       │
+    └───────────────────────────────────────┘
+            │           │
+            │           │ Serial Connection (TX, RX, GND)
+            │           │
+            ▼           ▼
+    ┌────────────┬──────────────┐
+    │            │              │
+    ▼            ▼              ▼
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           SLAVE ARDUINO UNO                                  │
+│                     (User Interface & Book Selection)                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────────────────────────────────┐
+    │       SLAVE ARDUINO UNO              │
+    │                                       │
+    │  [D4]────────┐                        │
+    │  [D5]────────┼─┐                      │
+    │  [D6]────────┼─┼─► Rotary Encoder    │
+    │              │ │   (CLK, DT, SW)      │
+    │              │ │                      │
+    │  [D2 RX]─────┼─┼──► From Master TX   │
+    │  [D3 TX]─────┼─┼──► To Master RX     │
+    │              │ │                      │
+    │  [A4 SDA]────┼─┼──► LCD I2C          │
+    │  [A5 SCL]────┼─┼──► LCD I2C          │
+    │              │ │                      │
+    │  [5V]────────┼─┼──► LCD & Encoder    │
+    │  [GND]───────┴─┴──► Common Ground    │
+    │                                       │
+    └───────────────────────────────────────┘
+            │           │
+            │           │ I2C Bus (to LCD only)
+            │           │
+            ▼           ▼
+    ┌───────────────────────────┐
+    │  LCD 16x2 with I2C Module │
+    │     (Address: 0x27)       │
+    │   SDA, SCL, VCC, GND      │
+    └───────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         DETAILED CONNECTIONS                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ MASTER ARDUINO CONNECTIONS                                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+IR SENSORS (Line Following):
+  IR Right Sensor OUT → A0
+  IR Right Sensor VCC → 5V
+  IR Right Sensor GND → GND
+  
+  IR Left Sensor OUT  → A1
+  IR Left Sensor VCC  → 5V
+  IR Left Sensor GND  → GND
+
+MOTOR DRIVER (L298N or similar):
+  ENA (Right Motor Enable) → D6 (PWM)
+  IN1 (Right Motor Dir 1)  → D7
+  IN2 (Right Motor Dir 2)  → D8
+  
+  ENB (Left Motor Enable)  → D5 (PWM)
+  IN3 (Left Motor Dir 1)   → D9
+  IN4 (Left Motor Dir 2)   → D10
+  
+  Motor Driver GND → Arduino GND
+  Motor Driver Logic VCC → Arduino 5V
+  Motor Driver Motor Power → External 7-12V Battery
+
+RFID MODULE (MFRC522):
+  RST → D2
+  SS  → D4
+  MOSI → Not connected (D11 used for Serial TX)
+  MISO → D12
+  SCK  → D13
+  VCC  → 3.3V (check your module - some are 5V tolerant)
+  GND  → GND
+
+  NOTE: MOSI is not connected because D11 is used for SoftwareSerial TX.
+        The RFID will still work for reading tags without MOSI.
+        If you need full RFID functionality, consider moving Serial TX to
+        another pin like D1 (but avoid D0/D1 which are hardware serial).
+
+SERIAL UART (to Slave Arduino):
+  D3 (Master RX) → D3 (Slave TX)  [CROSS CONNECTION]
+  D11 (Master TX) → D2 (Slave RX) [CROSS CONNECTION]
+  GND → GND (CRITICAL!)
+
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ SLAVE ARDUINO CONNECTIONS                                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+ROTARY ENCODER:
+  CLK → D4
+  DT  → D5
+  SW  → D6
+  +   → 5V
+  GND → GND
+
+LCD (16x2 with I2C Backpack):
+  SDA → A4
+  SCL → A5
+  VCC → 5V
+  GND → GND
+
+SERIAL UART (to Master Arduino):
+  D2 (Slave RX) → D11 (Master TX)  [CROSS CONNECTION]
+  D3 (Slave TX) → D3 (Master RX)   [CROSS CONNECTION]
+  GND → GND (CRITICAL!)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      SERIAL UART CONNECTION DIAGRAM                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+    MASTER ARDUINO                    SLAVE ARDUINO
+    ┌──────────────┐                 ┌──────────────┐
+    │              │                 │              │
+    │  D3 (RX) ────┼─────────────────┼──── D3 (TX)  │
+    │              │                 │              │
+    │  D11 (TX) ───┼─────────────────┼──── D2 (RX)  │
+    │              │                 │              │
+    │  GND ────────┼─────────────────┼──── GND      │
+    │              │                 │              │
+    └──────────────┘                 └──────────────┘
+
+    IMPORTANT: TX connects to RX (cross-connection)
+               Master D3 (RX) ← Slave D3 (TX)
+               Master D11 (TX) → Slave D2 (RX)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     SERIAL COMMUNICATION PROTOCOL                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Message Format: String + Newline ("\n")
+Baud Rate: 9600
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ SLAVE → MASTER                                                          │
+├─────────────────┬───────────────────────────────────────────────────────┤
+│ Command         │ Description                                           │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ "S1\n"          │ Select Book 1                                         │
+│ "S2\n"          │ Select Book 2                                         │
+│ "S3\n"          │ Select Book 3                                         │
+│ "S4\n"          │ Select Book 4                                         │
+│ "S5\n"          │ Select Book 5                                         │
+│ "S6\n"          │ Select Book 6                                         │
+│ "R\n"           │ Reset selection                                       │
+└─────────────────┴───────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ MASTER → SLAVE                                                          │
+├─────────────────┬───────────────────────────────────────────────────────┤
+│ Command         │ Description                                           │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ "F1\n"          │ Book 1 Found (robot stopped)                          │
+│ "F2\n"          │ Book 2 Found (robot stopped)                          │
+│ "F3\n"          │ Book 3 Found (robot stopped)                          │
+│ "F4\n"          │ Book 4 Found (robot stopped)                          │
+│ "F5\n"          │ Book 5 Found (robot stopped)                          │
+│ "F6\n"          │ Book 6 Found (robot stopped)                          │
+│ "A1\n"          │ Acknowledged Book 1 selection                         │
+│ "A2\n"          │ Acknowledged Book 2 selection                         │
+│ ...             │ (same pattern for books 3-6)                          │
+│ "R\n"           │ Ready for next selection (after 30s stop)             │
+└─────────────────┴───────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         POWER DISTRIBUTION                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+MASTER ARDUINO:
+  - Can be powered via USB (during programming) or VIN (7-12V)
+  - Motors MUST have separate power supply (through motor driver)
+  - RFID module uses 3.3V from Arduino (check your module specs)
+
+SLAVE ARDUINO:
+  - Can be powered via USB or VIN (7-12V)
+  - Powers LCD and rotary encoder through 5V pin
+  - Low power consumption (no motors)
+
+RECOMMENDED POWER SETUP:
+  Option 1: Both Arduinos powered by USB (easy for testing)
+  Option 2: Master on battery (9V/12V), Slave on USB
+  Option 3: Both on separate batteries with common ground
+
+  Motors: Separate 7-12V battery pack (high current)
+  
+  CRITICAL: All GNDs must be connected together!
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         IMPORTANT NOTES                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✓ ALWAYS connect GND between both Arduinos (shared ground)
+✓ Cross-connect TX/RX: Master RX ← Slave TX, Master TX → Slave RX
+✓ Use 9600 baud rate on both SoftwareSerial instances
+✓ Don't use D0/D1 for anything (reserved for USB Serial)
+✓ Check your RFID module voltage (3.3V or 5V compatible)
+✓ Verify LCD I2C address (0x27 or 0x3F) using I2C scanner
+✓ Motors require adequate power supply (separate from Arduino)
+✓ Test each Arduino separately before connecting via Serial
+
+SERIAL ADVANTAGES OVER I2C:
+✓ Simpler wiring (no pull-up resistors needed)
+✓ No addressing conflicts
+✓ More robust over longer distances
+✓ Easier to debug with Serial Monitor
+✓ Frees up I2C bus (A4/A5) on Master for future expansion
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         TESTING PROCEDURE                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Step 1: Test Master Arduino alone
+  - Upload Master_LineFollower_Serial.ino
+  - Open Serial Monitor at 9600 baud
+  - Test line following without book selection
+  - Test RFID detection with a single book
+
+Step 2: Test Slave Arduino alone
+  - Upload Slave_BookSelector_Serial.ino
+  - Open Serial Monitor at 9600 baud
+  - Test rotary encoder selection
+  - Test LCD display
+  - Verify button press works
+
+Step 3: Connect Serial wires and test communication
+  - Wire: Master D3 → Slave D3 (RX to TX)
+  - Wire: Master D11 → Slave D2 (TX to RX)
+  - Wire: Master GND → Slave GND
+  - Upload both sketches
+  - Open two Serial Monitors (one for each Arduino)
+
+Step 4: Test book selection flow
+  - Select a book on the Slave (rotate encoder)
+  - Press button to confirm
+  - Master Serial should show: "Received book selection from Slave: Book X"
+  - Slave LCD should show: "Book X Selected" then "Robot searching.."
+
+Step 5: Full system test
+  - Select a book on the Slave
+  - Verify Master starts line following
+  - Test RFID detection and stopping
+  - Verify "Book X FOUND!" appears on Slave LCD
+  - Wait 30 seconds for reset
+
+Step 6: Debug if needed
+  - Check TX/RX connections (cross-wired?)
+  - Verify common ground
+  - Check baud rates match (9600)
+  - Monitor Serial output on both Arduinos
+  - Use Serial.print() to debug messages
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         TROUBLESHOOTING GUIDE                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Problem: No communication between Arduinos
+Solution:
+  → Check TX/RX cross-connection (Master RX to Slave TX)
+  → Verify GND is connected
+  → Ensure both use 9600 baud
+  → Test with simple Serial.println() messages
+
+Problem: Garbled/corrupted messages
+Solution:
+  → Check baud rate mismatch
+  → Ensure wires are not too long (< 1 meter)
+  → Keep Serial wires away from motor wires (interference)
+  → Add small delay after Serial.begin()
+
+Problem: RFID not working on Master
+Solution:
+  → Note: MOSI is disconnected (D11 used for Serial TX)
+  → RFID read-only mode should still work
+  → If issues persist, move Serial TX to different pin
+  → Or use hardware Serial on D0/D1 (but then can't use USB debug)
+
+Problem: Messages sent but not received
+Solution:
+  → Check if readStringUntil('\n') is being called in loop
+  → Verify Serial.available() check
+  → Add timeout handling
+  → Print received strings for debugging
+
+Problem: LCD not displaying
+Solution:
+  → Try address 0x3F instead of 0x27
+  → Check I2C connections (SDA, SCL, VCC, GND)
+  → Adjust contrast potentiometer
+  → Run I2C scanner sketch to find address
+
+Problem: Robot doesn't start after book selection
+Solution:
+  → Check if Master received "S" command
+  → Verify selectedBook variable is set (1-6, not 0)
+  → Monitor Master Serial output
+  → Ensure line sensors are working
