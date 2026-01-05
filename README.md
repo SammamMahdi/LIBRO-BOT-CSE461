@@ -60,6 +60,8 @@ Slave_BookSelector_Serial/Slave_BookSelector_Serial.ino
 - ✅ Easier to debug
 - ✅ Frees up I2C pins on Master for expansion
 - ✅ **Already has the rotary encoder fix applied!**
+- ✅ **Includes SG92R servo motor integration for book retrieval**
+- ✅ **Automatic resume after book found - no manual intervention needed**
 
 ---
 
@@ -104,6 +106,14 @@ Slave_BookSelector_Serial/Slave_BookSelector_Serial.ino
 - **D6** - Rotary Encoder SW (button)
 - **D9** - Servo Motor Signal (SG92R)
 - **A4, A5** - LCD I2C (SDA, SCL)
+
+### Servo Motor (SG92R) Wiring:
+```
+Servo Orange/Yellow wire → Slave D9 (Signal)
+Servo Red wire           → Slave 5V (Power)
+Servo Brown/Black wire   → Slave GND (Ground)
+```
+**Note:** Servo starts at 180° position. When book is found, it rotates to 0°, then back to 180°.
 
 ### Connection Between Arduinos:
 ```
@@ -189,6 +199,9 @@ Update these arrays if your physical RFID tags have different UIDs.
 - ✅ All sketches organized in proper folders
 - ✅ Serial UART version implemented and tested
 - ✅ Rotary encoder fix applied to Slave_BookSelector_Serial
+- ✅ **SG92R Servo motor integration complete**
+- ✅ **Auto-resume line following after book found**
+- ✅ **Manual reset functionality via encoder button**
 - ✅ Pin configurations documented
 - ✅ Wiring diagrams created
 - ✅ Troubleshooting guides included
@@ -252,6 +265,9 @@ Check these files:
 
 ---
 
-**Project Status:** ✅ Ready to Deploy
+**Project Status:** ✅ Ready to Deploy  
+**Recommended Version:** Serial UART (Master_LineFollower_Serial + Slave_BookSelector_Serial)  
+**Hardware:** 2 Arduino Unos + SG92R Servo + MFRC522 RFID + 16x2 I2C LCD + Rotary Encoder  
+**Last Updated:** January 6, 2026
 **Recommended Version:** Serial UART (Master_LineFollower_Serial + Slave_BookSelector_Serial)
 **Last Updated:** January 5, 2026
