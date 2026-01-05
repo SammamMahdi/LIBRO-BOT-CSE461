@@ -7,34 +7,31 @@ All Arduino sketches are now properly organized in individual folders as require
 ```
 librobot/
 │
-├── 📂 book_select/
-│   └── book_select.ino                    [Original RFID book selector with rotary encoder]
-│
-├── 📂 LineFollower_8Sensor/
-│   └── LineFollower_8Sensor.ino           [Your original line follower with RFID]
-│
-├── 📂 Master_LineFollower/
-│   └── Master_LineFollower.ino            [I2C Version - Master Arduino]
-│
-├── 📂 Slave_BookSelector/
-│   └── Slave_BookSelector.ino             [I2C Version - Slave Arduino]
-│
 ├── 📂 Master_LineFollower_Serial/
-│   └── Master_LineFollower_Serial.ino     [Serial UART Version - Master Arduino] ⭐ RECOMMENDED
+│   └── Master_LineFollower_Serial.ino     [Serial UART Version - Master Arduino] ⭐ CURRENT
 │
 ├── 📂 Slave_BookSelector_Serial/
-│   └── Slave_BookSelector_Serial.ino      [Serial UART Version - Slave Arduino] ⭐ RECOMMENDED
+│   └── Slave_BookSelector_Serial.ino      [Serial UART Version - Slave Arduino] ⭐ CURRENT
 │
-├── 📂 Test_RotaryEncoder/
-│   └── Test_RotaryEncoder.ino             [Diagnostic test for rotary encoder]
+├── 📂 Legacy/
+│   ├── 📂 book_select/
+│   │   └── book_select.ino                [Original RFID book selector with rotary encoder]
+│   └── 📂 LineFollower_8Sensor/
+│       └── LineFollower_8Sensor.ino       [Original single Arduino line follower]
+│
+├── 📂 Test/
+│   ├── 📂 Test_EncoderHardware/
+│   │   └── Test_EncoderHardware.ino       [Encoder hardware diagnostics]
+│   ├── 📂 Test_Master_Serial/
+│   │   └── Test_Master_Serial.ino         [Master serial communication test]
+│   └── 📂 Test_RotaryEncoder/
+│       └── Test_RotaryEncoder.ino         [Rotary encoder diagnostics]
 │
 └── 📄 Documentation Files
-    ├── PIN_CONFIGURATION.md                [Pin assignments for Serial version]
-    ├── PIN_CONFIGURATION_SERIAL.md         [Detailed Serial UART pin config]
-    ├── PIN_CHANGES_COMPARISON.txt          [What changed from I2C to Serial]
-    ├── WIRING_DIAGRAM.txt                  [I2C version wiring]
+    ├── FINAL_WORKING_CONFIG.md             [Final working configuration notes]
+    ├── PIN_CONFIGURATION_SERIAL.md         [Complete pin configuration] ⭐ USE THIS
     ├── WIRING_DIAGRAM_SERIAL.txt           [Serial version wiring] ⭐ USE THIS
-    └── ROTARY_ENCODER_TROUBLESHOOTING.md   [Rotary encoder help guide]
+    └── README.md                           [This file]
 ```
 
 ---
@@ -124,34 +121,40 @@ Master GND      ──────► Slave GND  [CRITICAL!]
 
 ---
 
-## 📚 Alternative Versions
-
-### I2C Version (Original master-slave design)
-- **Master_LineFollower/** - I2C Master
-- **Slave_BookSelector/** - I2C Slave
-- Uses A4/A5 for communication
-- Requires pull-up resistors on I2C lines
+## 📚 Alternative Versions (in Legacy folder)
 
 ### Original Single Arduino
-- **LineFollower_8Sensor/** - Your original implementation
+- **Legacy/LineFollower_8Sensor/** - Original single Arduino implementation
 - Single Arduino, no book selection interface
 - Stops at Book 1 only
 
 ### Standalone Book Scanner
-- **book_select/** - The original book selection code
+- **Legacy/book_select/** - The original book selection code
 - Tests RFID scanning with rotary encoder
 - Good for testing RFID tags
 
 ---
 
-## 🧪 Testing & Diagnostics
+## 🧪 Testing & Diagnostics (in Test folder)
 
 ### Test Rotary Encoder
 If your rotary encoder isn't working:
 ```
-Test_RotaryEncoder/Test_RotaryEncoder.ino
+Test/Test_RotaryEncoder/Test_RotaryEncoder.ino
 ```
 Upload to Slave Arduino and open Serial Monitor to diagnose.
+
+### Test Encoder Hardware
+```
+Test/Test_EncoderHardware/Test_EncoderHardware.ino
+```
+Hardware-level encoder testing.
+
+### Test Master Serial Communication
+```
+Test/Test_Master_Serial/Test_Master_Serial.ino
+```
+Test serial communication from Master side.
 
 ### Test Serial Communication
 1. Upload both Serial sketches
@@ -159,6 +162,8 @@ Upload to Slave Arduino and open Serial Monitor to diagnose.
 3. Rotate encoder on Slave
 4. Press button
 5. Watch for messages on both monitors
+
+**Also see:** Test/Test_Master_Serial/ for dedicated serial testing
 
 ---
 
@@ -228,10 +233,10 @@ Update these arrays if your physical RFID tags have different UIDs.
 ## 📞 Need Help?
 
 Check these files:
-- **PIN_CONFIGURATION.md** - Pin assignments
-- **WIRING_DIAGRAM_SERIAL.txt** - Complete wiring guide
-- **ROTARY_ENCODER_TROUBLESHOOTING.md** - Encoder issues
-- **PIN_CHANGES_COMPARISON.txt** - What changed from original
+- **PIN_CONFIGURATION_SERIAL.md** - Complete pin assignments and system details
+- **WIRING_DIAGRAM_SERIAL.txt** - Complete wiring guide with diagrams
+- **FINAL_WORKING_CONFIG.md** - Final working configuration notes
+- **Test/** folder - Various diagnostic sketches
 
 ---
 
