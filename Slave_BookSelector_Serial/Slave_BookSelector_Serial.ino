@@ -276,6 +276,21 @@ void checkMasterResponse()
       lcd.setCursor(0, 1);
       lcd.print("Searching...    ");
     }
+    else if (response == "N") { // 'N' for Not found
+      Serial.println("Master: Book not found - returned to Home");
+      
+      // Display not found message
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Book Not Found!");
+      lcd.setCursor(0, 1);
+      lcd.print("At Home         ");
+      
+      delay(3000);
+      
+      // Reset to selection screen
+      resetSelection();
+    }
     else if (response == "R") { // 'R' for Reset/Ready
       Serial.println("Master ready for next selection");
       resetSelection();

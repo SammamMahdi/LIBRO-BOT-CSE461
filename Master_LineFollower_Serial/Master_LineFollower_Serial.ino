@@ -39,7 +39,7 @@ int leftMotorPin2 = 10;
 // RFID tag detection variables
 unsigned long stopStartTime = 0;
 bool isStopped = false;
-const unsigned long stopDuration = 10000; // Stop for 30 seconds
+const unsigned long stopDuration = 30000; // Stop for 30 seconds
 
 // Book selection from slave
 int selectedBook = 0; // 0 = no book selected, 1-6 = book number
@@ -51,7 +51,10 @@ byte book2[] = {0x30, 0xE7, 0xA8, 0x2B};
 byte book3[] = {0xA0, 0x9D, 0xB5, 0x2B};
 byte book4[] = {0x10, 0x2C, 0xAC, 0x2B};
 byte book5[] = {0x90, 0xFA, 0xBA, 0x2B};
-byte book6[] = {0xC9, 0x7D, 0x6A, 0x05};
+byte book6[] = {0xD5, 0x3A, 0x7F, 0x1E}; // Changed to random UID
+
+// Home position tag (uses old book 6 UID)
+byte homeTag[] = {0xC9, 0x7D, 0x6A, 0x05};
 
 void setup()
 {
@@ -259,6 +262,50 @@ void checkRFIDTag()
     // Send confirmation to slave Arduino
     slaveSerial.print("F");
     slaveSerial.println(selectedBook); // 'F' for Found
+  }
+  
+  // Check for Home tag
+  bool isHomeTag = false;
+  if (rfid.uid.size == 4) {
+    isHomeTag = true;
+    for (byte i = 0; i < 4; i++) {
+      if (rfid.uid.uidByte[i] != homeTag[i]) {
+        isHomeTag = false;
+        break;
+      }
+    }
+  }
+  
+  if (isHomeTag) {
+    if (bookFoundAndProcessed) {
+      // Book was found, now at home - automatic reset
+      Serial.println("Home detected after book found - Auto resetting...");
+      rotateMotor(0, 0);
+      
+      // Send reset command to Slave
+      slaveSerial.println("R");
+      
+      // Reset local state
+      selectedBook = 0;
+      isStopped = false;
+      bookFoundAndProcessed = false;
+      
+      delay(2000); // Wait before accepting new selection
+    } else if (selectedBook > 0) {
+      // Book was selected but not found yet
+      Serial.println("Home detected - Book not found!");
+      rotateMotor(0, 0);
+      
+      // Send "not found" message to Slave
+      slaveSerial.println("N"); // 'N' for Not found
+      
+      // Reset state
+      selectedBook = 0;
+      isStopped = false;
+      bookFoundAndProcessed = false;
+      
+      delay(2000);
+    }
   }
   
   rfid.PICC_HaltA(); // Halt the card
